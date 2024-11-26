@@ -4,5 +4,15 @@
   "gymDiary": "GymDiary",
   "settingsPage": "Settings Page",
   "english": "English",
-  "finnish": "Finnish"
+  "finnish": "Finnish",
+  "workoutAddPage": "Add Workout",
+  "workoutViewPage": "View Workouts",
+  "workoutTemplatePage": "Add Workout Template",
+  "workouts": "Workouts",
+  "welcome": "Welcome",
+  "addWorkout": "Add Workout",
+  "workoutAddDescription": "Add a new workout to your routine. Customize the workout with exercises, sets, reps, and more.",
+  "workoutViewDescription": "View and track your past workouts. Analyze your progress and make adjustments to your training.",
+  "workoutTemplateDescription": "Create and manage workout templates. Save your favorite workouts to reuse them easily in the future."
+  
 }

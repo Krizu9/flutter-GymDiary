@@ -4,5 +4,15 @@
   "gymDiary": "GymDiary",
   "settingsPage": "Asetukset Sivu",
   "english": "Englanti",
-  "finnish": "Suomi"
+  "finnish": "Suomi",
+  "workoutAddPage": "Lisää Harjoite",
+  "workoutViewPage": "Tarkastele harjoitteita",
+  "workoutTemplatePage": "Lisää Harjoite Pohja",
+  "workouts" : "Harjoitteet",
+  "welcome" : "Tervetuloa",
+  "addWorkout" : "Lisää Harjoite",
+  "workoutAddDescription": "Lisää uusi harjoitus rutiiniisi. Mukauta harjoitus liikkeillä, sarjoilla, toistoilla ja muilla asetuksilla.",
+  "workoutViewDescription": "Tarkastele ja seuraa aiempia harjoituksiasi. Analysoi edistymistäsi ja tee tarvittavat muutokset harjoitteluusi.",
+  "workoutTemplateDescription": "Luo ja hallitse harjoituspohjia. Tallenna suosikkiharjoituksesi käytettäväksi helposti myöhemmin."
+  
 }

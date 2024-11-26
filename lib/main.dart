@@ -20,7 +20,7 @@ class _MyAppState extends State<MyApp> {
 
   void _changeLanguage(Locale locale) {
     setState(() {
-      _locale = locale; 
+      _locale = locale;
       debugPrint("Language changed to ${locale.languageCode}");
     });
   }
@@ -65,16 +65,19 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const HomePage(),
+    const WorkoutHomePage(),
     const SettingsPage(),
+    const WorkoutHomePage(),
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      debugPrint("Selected index: $_selectedIndex");
     });
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
