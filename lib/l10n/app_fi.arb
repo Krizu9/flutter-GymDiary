@@ -13,6 +13,16 @@
   "addWorkout" : "Lisää Harjoite",
   "workoutAddDescription": "Lisää uusi harjoitus rutiiniisi. Mukauta harjoitus liikkeillä, sarjoilla, toistoilla ja muilla asetuksilla.",
   "workoutViewDescription": "Tarkastele ja seuraa aiempia harjoituksiasi. Analysoi edistymistäsi ja tee tarvittavat muutokset harjoitteluusi.",
-  "workoutTemplateDescription": "Luo ja hallitse harjoituspohjia. Tallenna suosikkiharjoituksesi käytettäväksi helposti myöhemmin."
-  
+  "workoutTemplateDescription": "Luo ja hallitse harjoituspohjia. Tallenna suosikkiharjoituksesi käytettäväksi helposti myöhemmin.",
+  "noWorkoutTemplates": "Ei harjoitepohjia",
+  "movements" : "Liikkeet",
+  "addWorkoutTemplate": "Lisää harjoitepohja",
+  "templateName": "Pohjan nimi",
+  "templateMovements": "Pohjan liikkeet",
+  "cancel" : "Peruuta",
+  "save": "Tallenna",
+  "addMovement": "Lisää liike",
+  "movementName": "Liikkeen nimi",
+  "sets": "Sarjat",
+  "editWorkoutTemplate": "Muokkaa harjoitepohjaa"
 }

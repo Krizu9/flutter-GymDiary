@@ -31,6 +31,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  sqflite: ^2.0.0+3
+  path: ^1.8.0
+
+  provider: ^6.0.5
+
+  shared_preferences: ^2.0.15
+
   # add l10n
   flutter_localizations:
     sdk: flutter

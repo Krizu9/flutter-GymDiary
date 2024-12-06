@@ -2,10 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gymdiary/screens/home_page.dart';
 import 'package:gymdiary/screens/settings_page.dart';
+import 'package:gymdiary/providers/workoutTemplateProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding
+      .ensureInitialized(); // Ensures the app is initialized before running
+
+  // Initialize the provider and database
+  final workoutTemplateProvider = WorkoutTemplateProvider();
+  await workoutTemplateProvider
+      .initDatabase(); // Await the database initialization
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => workoutTemplateProvider),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -18,11 +36,29 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
 
-  void _changeLanguage(Locale locale) {
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedLanguage();
+  }
+
+  // Load saved language from SharedPreferences
+  Future<void> _loadSavedLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedLanguage = prefs.getString('languageCode') ?? 'en';
+    setState(() {
+      _locale = Locale(savedLanguage);
+    });
+  }
+
+  // Change language and save to SharedPreferences
+  Future<void> _changeLanguage(Locale locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('languageCode', locale.languageCode);
     setState(() {
       _locale = locale;
-      debugPrint("Language changed to ${locale.languageCode}");
     });
+    debugPrint("Language changed to ${locale.languageCode}");
   }
 
   @override
@@ -77,7 +113,6 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(

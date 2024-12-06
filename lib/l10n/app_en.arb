@@ -13,6 +13,16 @@
   "addWorkout": "Add Workout",
   "workoutAddDescription": "Add a new workout to your routine. Customize the workout with exercises, sets, reps, and more.",
   "workoutViewDescription": "View and track your past workouts. Analyze your progress and make adjustments to your training.",
-  "workoutTemplateDescription": "Create and manage workout templates. Save your favorite workouts to reuse them easily in the future."
-  
+  "workoutTemplateDescription": "Create and manage workout templates. Save your favorite workouts to reuse them easily in the future.",
+  "noWorkoutTemplates": "No workout templates",
+  "movements" : "Movements",
+  "addWorkoutTemplate": "Add workout template",
+  "templateName": "Template name",
+  "templateMovements": "Template movements",
+  "cancel" : "Cancel",
+  "save": "Save",
+  "addMovement": "Add movement",
+  "movementName": "Movement name",
+  "sets": "Sets",
+  "editWorkoutTemplate": "Edit workout template"
 }
