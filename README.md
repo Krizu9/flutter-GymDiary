@@ -6,23 +6,24 @@ Ajatuksena tällä projektilla on luoda oma kuntosaliharjoitteiden seurantaan ra
 
 ## Appi
 
-![Kotisivu englanniksi](images_for_readme/image.png)
+
+<img src="images_for_readme/image.png" alt="Image description" width="300" />
 
 Kotisivu englanniksi
 
-![Kotisivu suomeksi](images_for_readme/image-1.png)
+<img src="images_for_readme/image-1.png" alt="Image description" width="300" />
 
 Kotisivu suomeksi
 
-![Harjoitepohjan luominen](images_for_readme/image-3.png)
+<img src="images_for_readme/image-3.png" alt="Image description" width="300" />
 
 Harjoitepohjan luominen
 
-![Harjoitepohja näkymä](images_for_readme/image-4.png)
+<img src="images_for_readme/image-4.png" alt="Image description" width="300" />
 
 Luotujen harjoitepohjien näkymä
 
-![Muokkaaminen](images_for_readme/image-5.png)
+<img src="images_for_readme/image-5.png" alt="Image description" width="300" />
 
 Jo luotujen harjoitepohjien muokkaaminen mielekkäämmäksi kuten tässä ollaan lisätty hauiskääntöä jalkapäivään :D
 
