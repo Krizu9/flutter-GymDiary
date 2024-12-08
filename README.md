@@ -1,16 +1,29 @@
-# gymdiary
+# gymdiary mobile app with flutter
 
-A new Flutter project.
+## Ajatus
 
-## Getting Started
+Ajatuksena tällä projektilla on luoda oma kuntosaliharjoitteiden seurantaan rakennettu standalone puhelin sovellus. Sovellus on rakennettu flutterilla käyttäen sovelluksen sisäistä databasea sqfliteä. Sovellus on kaksi kielinen: Englanti ja Suomi.
 
-This project is a starting point for a Flutter application.
+## Appi
 
-A few resources to get you started if this is your first Flutter project:
+![Kotisivu englanniksi](images_for_readme/image.png)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Kotisivu englanniksi
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![Kotisivu suomeksi](images_for_readme/image-1.png)
+
+Kotisivu suomeksi
+
+![Harjoitepohjan luominen](images_for_readme/image-3.png)
+
+Harjoitepohjan luominen
+
+![Harjoitepohja näkymä](images_for_readme/image-4.png)
+
+Luotujen harjoitepohjien näkymä
+
+![Muokkaaminen](images_for_readme/image-5.png)
+
+Jo luotujen harjoitepohjien muokkaaminen mielekkäämmäksi kuten tässä ollaan lisätty hauiskääntöä jalkapäivään :D
+
+
