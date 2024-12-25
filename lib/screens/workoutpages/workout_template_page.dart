@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:gymdiary/providers/workoutTemplateProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:gymdiary/models/workoutMovement.dart';
+import 'package:gymdiary/models/workoutTemplate.dart';
 
 class WorkoutTemplatePage extends StatefulWidget {
   const WorkoutTemplatePage({super.key});
@@ -12,243 +13,196 @@ class WorkoutTemplatePage extends StatefulWidget {
 }
 
 class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
+  TextEditingController _templateNameController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    final workoutProvider = Provider.of<WorkoutTemplateProvider>(context, listen: false);
+
+    _templateNameController.text = '';
+    final workoutProvider =
+        Provider.of<WorkoutTemplateProvider>(context, listen: false);
     workoutProvider.fetchWorkoutTemplates();
   }
+
   @override
   Widget build(BuildContext context) {
     final workoutProvider = Provider.of<WorkoutTemplateProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.workoutTemplatePage),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
+        title: Text(AppLocalizations.of(context)?.workoutTemplatePage ??
+            'Workout Template'),
       ),
-      body: workoutProvider.workoutTemplates.isEmpty
-          ? Center(
-              child: Text(
-                AppLocalizations.of(context)!.noWorkoutTemplates,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-            )
-          : ListView.builder(
-              itemCount: workoutProvider.workoutTemplates.length,
+      body: _buildTemplateList(workoutProvider),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddTemplateDialog(),
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildTemplateList(WorkoutTemplateProvider workoutProvider) {
+    return FutureBuilder<List<WorkoutTemplate>>(
+      future: workoutProvider.fetchWorkoutTemplates(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final templates = snapshot.data!;
+          return SizedBox(
+            //scaling height
+            height: MediaQuery.of(context).size.height * 0.9,
+            width: MediaQuery.of(context).size.width,
+            child: ListView.builder(
+              itemCount: templates.length,
               itemBuilder: (context, index) {
-                final template = workoutProvider.workoutTemplates[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: ListTile(
-                    title: Text(template.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: template.movements.map((movement) {
-                        return Text(
-                            '${movement.movement} - ${movement.sets} sets');
-                      }).toList(),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        workoutProvider.deleteTemplate(template.id);
-                      },
-                    ),
-                    onTap: () async {
-                      await _showAddTemplateDialog(
-                        context,
-                        workoutProvider,
-                        () {
-                          workoutProvider.fetchWorkoutTemplates();
-                        },
-                        templateId: template.id.toString(),
-                        initialName: template.name,
-                        initialMovements: template.movements,
-                      );
+                final template = templates[index];
+                return ListTile(
+                  title: Text(template.name),
+                  subtitle: Text('Movements: ${template.movements.length}'),
+                  onTap: () => _showAddMovementDialog(template),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      workoutProvider.deleteTemplate(template.id);
                     },
                   ),
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await _showAddTemplateDialog(context, workoutProvider, () {
-            workoutProvider.fetchWorkoutTemplates();
-          });
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Future<void> _showAddTemplateDialog(BuildContext context,
-      WorkoutTemplateProvider workoutProvider, Function() onTemplateChanged,
-      {String? templateId,
-      String? initialName,
-      List<WorkoutMovement>? initialMovements}) async {
-    final TextEditingController nameController =
-        TextEditingController(text: initialName ?? '');
-    List<WorkoutMovement> movements = List.from(initialMovements ?? []);
-
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(templateId == null
-                  ? AppLocalizations.of(context)!.addWorkoutTemplate
-                  : AppLocalizations.of(context)!.editWorkoutTemplate),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.templateName,
-                      ),
-                    ),
-                    ...movements.map((movement) {
-                      return ListTile(
-                        title: Text(movement.movement),
-                        subtitle: Text('${movement.sets} ${AppLocalizations.of(context)!.sets}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              movements.remove(movement);
-                            });
-                          },
-                        ),
-                      );
-                    }).toList(),
-                    ElevatedButton(
-                      onPressed: () {
-                        _showAddMovementDialog(
-                          context,
-                          movements,
-                          () => setState(() {}),
-                        );
-                      },
-                      child: Text(AppLocalizations.of(context)!.addMovement),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(AppLocalizations.of(context)!.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-
-                    if (name.isNotEmpty && movements.isNotEmpty) {
-                      if (templateId == null) {
-                        // Add new template
-                        workoutProvider.addWorkoutTemplate(
-                          name,
-                          movements,
-                        );
-                      } else {
-                        // Update existing template
-                        workoutProvider.updateWorkoutTemplate(
-                          templateId,
-                          name,
-                          movements,
-                        );
-                      }
-
-                      onTemplateChanged();
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Text(AppLocalizations.of(context)!.save),
-                ),
-              ],
-            );
-          },
-        );
+          );
+        }
       },
     );
   }
 
-  Future<void> _showAddMovementDialog(
-    BuildContext context,
-    List<WorkoutMovement> movements,
-    Function() onMovementAdded, // Callback to refresh state
-  ) async {
-    final TextEditingController movementNameController =
-        TextEditingController();
-    final TextEditingController setsController = TextEditingController();
-
-    await showDialog(
+  Future<void> _showAddTemplateDialog() async {
+    return (showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.addMovement),
+          title: Text('Add Template'),
+          content: TextField(
+            controller: _templateNameController,
+            decoration: InputDecoration(hintText: 'Template Name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final workoutProvider = Provider.of<WorkoutTemplateProvider>(
+                    context,
+                    listen: false);
+                workoutProvider.addWorkoutTemplate(WorkoutTemplate(
+                  id: 0,
+                  name: _templateNameController.text,
+                  movements: [],
+                ));
+                Navigator.pop(context);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    ));
+  }
+
+  Future<void> _showAddMovementDialog(WorkoutTemplate workoutTemplate) async {
+    final workoutProvider =
+        Provider.of<WorkoutTemplateProvider>(context, listen: false);
+    final templates = await workoutProvider.fetchWorkoutTemplates();
+
+    // Find the selected template by its ID
+    final template = templates.firstWhere(
+      (t) => t.id == workoutTemplate.id,
+      orElse: () => WorkoutTemplate(id: 0, name: 'error', movements: []),
+    );
+
+    if (template == null) return; // If no template found, exit
+
+    // Set up TextControllers for adding new movement
+    final movementController = TextEditingController();
+    final setsController = TextEditingController();
+
+    // Show the dialog
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Add Movement for ${template.name}'),
           content: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: movementNameController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.movementName,
+              // Display existing movements in the template
+              if (template.movements.isNotEmpty)
+                SingleChildScrollView(
+                  child: Column(
+                    children: template.movements
+                        .map(
+                          (movement) => ListTile(
+                            title: Text(movement.movement),
+                            subtitle: Text('Sets: ${movement.sets}'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                workoutProvider.deleteMovementFromTemplate(
+                                    workoutTemplate, movement);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
+              TextField(
+                controller: movementController,
+                decoration: InputDecoration(hintText: 'Movement Name'),
               ),
               TextField(
                 controller: setsController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.sets,
-                ),
                 keyboardType: TextInputType.number,
+                decoration: InputDecoration(hintText: 'Sets'),
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                final movementName = movementNameController.text.trim();
-                final sets = int.tryParse(setsController.text.trim()) ?? 0;
+            TextButton(
+              onPressed: () async {
+                final movementName = movementController.text;
+                final sets = int.tryParse(setsController.text) ?? 0;
 
                 if (movementName.isNotEmpty && sets > 0) {
-                  // Add new movement to the list
-                  setState(() {
-                    movements.add(WorkoutMovement(
-                      movement: movementName,
-                      sets: sets,
-                      lowestReps: 0,
-                      highestReps: 0,
-                    ));
-                  });
+                  // Create a new movement
+                  final newMovement = WorkoutMovement(
+                    movement: movementName,
+                    sets: sets,
+                    reps: [],
+                    weights: [],
+                  );
 
-                  // Notify parent to refresh the state
-                  onMovementAdded();
+                  // Save the updated template
+                  workoutProvider.addMovementToTemplate(
+                      workoutTemplate, newMovement);
 
+                  // Close dialog after saving
                   Navigator.pop(context);
+                } else {
+                  // Show a validation error
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Please enter valid movement and sets')));
                 }
               },
-              child: Text(AppLocalizations.of(context)!.save),
+              child: Text('Save'),
             ),
           ],
         );

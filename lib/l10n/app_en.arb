@@ -24,5 +24,22 @@
   "addMovement": "Add movement",
   "movementName": "Movement name",
   "sets": "Sets",
-  "editWorkoutTemplate": "Edit workout template"
+  "editWorkoutTemplate": "Edit workout template",
+  "workoutSaved": "Workout saved",
+  "workoutSaveError": "Error when saving",
+  "fetchError": "Error fetching workout templates",
+  "set": "Set",
+  "reps" :"Reps",
+  "saveChanges": "Save changes",
+  "editMovements": "Edit movement",
+  "noWorkoutsForTemplate": "No workouts for template",
+  "deleteWorkoutConfirmation": "Are you sure you want to delete this workout?",
+  "confirmDeleteWorkout": "Confirm delete workout",
+  "delete": "Delete",
+  "workoutEditPage": "Workout edit page",
+  "error": "Error",
+  "invalidInput": "Invalid input",
+  "ok": "Ok",
+  "weights": "Weights",
+  "movement": "Movement"
 }

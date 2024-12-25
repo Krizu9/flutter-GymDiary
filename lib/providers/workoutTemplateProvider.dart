@@ -5,103 +5,190 @@ import 'package:gymdiary/models/workoutTemplate.dart';
 import 'package:gymdiary/models/workoutMovement.dart';
 
 class WorkoutTemplateProvider with ChangeNotifier {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  Database? _db; // Database connection
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
+  Database? _db;
 
-  List<WorkoutTemplate> _workoutTemplates = [];
-
-  List<WorkoutTemplate> get workoutTemplates => _workoutTemplates;
-
-  // Initialize the database
-  Future<void> initDatabase() async {
-    _db = await _dbHelper.openDatabaseConnection();
-    notifyListeners();
+  WorkoutTemplateProvider() {
+    _databaseHelper.openDatabaseConnection().then((value) {
+      _db = value;
+    });
   }
 
   // Fetch workout templates from the database
-  Future<void> fetchWorkoutTemplates() async {
-    try {
-      if (_db == null) {
-        await initDatabase(); // Initialize if not already initialized
+  Future<List<WorkoutTemplate>> fetchWorkoutTemplates() async {
+    // Fetch workout templates
+    final fetchedTemplates = await _db?.query('workout_templates');
+    final fetchedMovements = await _db?.query('template_movements');
+
+    debugPrint("------------------------------------------------------- \n");
+    debugPrint("info about fetched workout templates and movements");
+    debugPrint("templates: $fetchedTemplates");
+    debugPrint("movements: $fetchedMovements \n");
+    debugPrint("-------------------------------------------------------");
+
+    if (fetchedTemplates == null) {
+      return [];    
+    }
+
+    final List<WorkoutTemplate> results = [];
+
+    for (final template in fetchedTemplates) {
+      final List<Map<String, dynamic>> movements = fetchedMovements!
+          .where((movement) => movement['templateId'] == template['id'])
+          .toList();
+
+      final List<WorkoutMovement> workoutMovements = movements.map((movement) {
+        return WorkoutMovement(
+          movement: movement['movement'],
+          sets: movement['sets'],
+          reps: [0],
+          weights: [0],
+        );
+      }).toList();
+
+      results.add(WorkoutTemplate(
+        id: template['id'] as int,
+        name: template['name'].toString(),
+        movements: workoutMovements,
+      ));
+    }
+
+    return results; // Return the list of WorkoutTemplates
+  }
+
+
+  // Add a new workout template with movements
+  Future<void> addWorkoutTemplate(WorkoutTemplate template) async {
+    final db = _db;
+    if (db == null) throw Exception("Database not initialized");
+
+    await db.transaction((txn) async {
+      // Insert the workout template
+      final int templateId = await txn.insert(
+        'workout_templates',
+        {'name': template.name},
+      );
+
+      // Insert each movement associated with the template
+      for (WorkoutMovement movement in template.movements) {
+        // Insert movement into the template_movements table
+        final int movementId = await txn.insert(
+          'template_movements',
+          {
+            'templateId': templateId,
+            'movement': movement.movement,
+            'sets': movement.sets,
+          },
+        );
+
+        // Insert each rep for the movement into the movement_reps table
+        for (int rep in movement.reps) {
+          await txn.insert(
+            'movement_reps',
+            {'movementId': movementId, 'rep': rep},
+          );
+        }
+
+        // Insert each weight for the movement into the movement_weights table
+        for (int weight in movement.weights) {
+          await txn.insert(
+            'movement_weights',
+            {'movementId': movementId, 'weight': weight},
+          );
+        }
       }
-      List<WorkoutTemplate> fetchedTemplates =
-          await _dbHelper.fetchWorkoutTemplatesWithMovements(_db!);
+    });
 
-      // Debugging print statement
-      print("Fetched templates from DB: $fetchedTemplates");
-
-      _workoutTemplates = fetchedTemplates;
-      notifyListeners();
-    } catch (e) {
-      print("Error fetching workout templates: $e");
-    }
+    // Notify listeners after database operations
+    notifyListeners();
   }
 
-  void updateWorkoutTemplate(
-      String templateId, String name, List<WorkoutMovement> movements) {
-    final index =
-        _workoutTemplates.indexWhere((template) => template.id == templateId);
-    if (index != -1) {
-      _workoutTemplates[index] = WorkoutTemplate(
-        id: templateId,
-        userId: _workoutTemplates[index].userId,
-        name: name,
-        movements: movements,
+  Future<void> deleteMovementFromTemplate(
+      WorkoutTemplate template, WorkoutMovement movement) async {
+    final db = _db;
+    if (db == null) throw Exception("Database not initialized");
+
+    await db.transaction((txn) async {
+      // Delete movement from the database
+      await txn.delete(
+        'template_movements',
+        where: 'templateId = ? AND movement = ?',
+        whereArgs: [template.id, movement.movement],
       );
-      notifyListeners();
-    }
-  }
+    });
 
-  // Add a new workout template with movements
-  // Add a new workout template with movements
-  Future<void> addWorkoutTemplate(
-      String name, List<WorkoutMovement> movements) async {
-    if (_db == null) {
-      await initDatabase(); // Initialize if not already initialized
-    }
-
-    // Insert the workout template (without movements)
-    final templateId = await _db!.insert(
-      DatabaseHelper.tableWorkoutTemplate,
-      {
-        'name': name,
-        
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-
-
-    // Insert each movement related to this workout template
-    for (var movement in movements) {
-      await _db!.insert(
-        DatabaseHelper.tableWorkoutMovement,
-        {
-          'workoutTemplateId':
-              templateId.toString(), // Convert to String before inserting
-          ...movement.toMap(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-
-    // Fetch workout templates after insertion
-    await fetchWorkoutTemplates(); // Ensure that the templates are refreshed
-
-    // Optionally notify listeners
+    // Notify listeners after database operations
     notifyListeners();
   }
 
 
+  // Add movement to workoutTemplate
+  Future<void> addMovementToTemplate(
+      WorkoutTemplate template, WorkoutMovement movement) async {
+    final db = _db;
+    if (db == null) throw Exception("Database not initialized");
+
+    await db.transaction((txn) async {
+      // Insert movement into the template_movements table
+      final int movementId = await txn.insert(
+        'template_movements',
+        {
+          'templateId': template.id,
+          'movement': movement.movement,
+          'sets': movement.sets,
+        },
+      );
+      debugPrint("------------------------------------------------------- \n");
+      debugPrint("movementId: $movementId");
+      debugPrint("------------------------------------------------------- \n");
+
+      // Insert each rep for the movement into the movement_reps table
+      for (int rep in movement.reps) {
+        await txn.insert(
+          'movement_reps',
+          {'movementId': movementId, 'rep': rep},
+        );
+      }
+
+      // Insert each weight for the movement into the movement_weights table
+      for (int weight in movement.weights) {
+        await txn.insert(
+          'movement_weights',
+          {'movementId': movementId, 'weight': weight},
+        );
+      }
+    });
+
+    // Notify listeners after database operations
+    notifyListeners();
+  }
+
   // Delete a workout template by ID
-  Future<void> deleteTemplate(String templateId) async {
-    if (_db == null) {
-      await initDatabase(); // Initialize if not already initialized
-    }
-    await _db!.delete(
-      DatabaseHelper.tableWorkoutTemplate,
-      where: 'id = ?',
-      whereArgs: [templateId],
-    );
-    await fetchWorkoutTemplates(); // Refresh the list after deletion
+  Future<void> deleteTemplate(int templateId) async {
+    final db = _db;
+    if (db == null) throw Exception("Database not initialized");
+
+    await db.transaction((txn) async {
+      try {
+        await txn.delete(
+          'workout_templates',
+          where: 'id = ?',
+          whereArgs: [templateId],
+        );
+      } catch (e) {
+        debugPrint('Error deleting template: $e');
+      }
+
+      try {
+        await txn.delete(
+          'template_movements',
+          where: 'templateId = ?',
+          whereArgs: [templateId],
+        );
+      } catch (e) {
+        debugPrint('Error deleting movements: $e');
+      }
+    });
+    notifyListeners();
   }
 }

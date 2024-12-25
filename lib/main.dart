@@ -6,6 +6,8 @@ import 'package:gymdiary/providers/workoutTemplateProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gymdiary/providers/workoutProvider.dart';
+import 'package:gymdiary/providers/databaseHelper.dart';
 
 void main() async {
   WidgetsFlutterBinding
@@ -13,13 +15,18 @@ void main() async {
 
   // Initialize the provider and database
   final workoutTemplateProvider = WorkoutTemplateProvider();
-  await workoutTemplateProvider
-      .initDatabase(); // Await the database initialization
+  final databaseHelper = DatabaseHelper();
+  await databaseHelper.openDatabaseConnection();
+
+  final workoutProvider = WorkoutProvider();
+
+  
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => workoutTemplateProvider),
+        ChangeNotifierProvider(create: (_) => workoutProvider),
       ],
       child: const MyApp(),
     ),

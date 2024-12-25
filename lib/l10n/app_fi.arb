@@ -24,5 +24,22 @@
   "addMovement": "Lisää liike",
   "movementName": "Liikkeen nimi",
   "sets": "Sarjat",
-  "editWorkoutTemplate": "Muokkaa harjoitepohjaa"
+  "editWorkoutTemplate": "Muokkaa harjoitepohjaa",
+  "workoutSaved": "Harjoite tallennettu",
+  "workoutSaveError": "Virhe harjoitetta tallentaessa",
+  "fetchError": "Virhe harjoitepohjien haussa",
+  "set": "Sarja",
+  "reps" :"Toistot",
+  "saveChanges": "Tallenna muutokset",
+  "editMovements": "Muokkaa liikettä",
+  "noWorkoutsForTemplate": "Ei harjoitteita harjoitepohjassa",
+  "deleteWorkoutConfirmation": "Oletko varma että haluat poistaa treenin?",
+  "confirmDeleteWorkout": "Vahvista poistaminen",
+  "delete": "Poista",
+  "workoutEditPage": "Harjoitteen muokkaamis sivu",
+  "error": "Virhe",
+  "invalidInput": "Väärä syöte",
+  "ok": "Ok",
+  "weights": "Painot",
+  "movement": "Liike"
 }
