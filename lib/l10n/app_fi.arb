@@ -48,5 +48,8 @@
   "no": "Ei",
   "yes": "Kyllä",
   "validMovementAndSets": "Syötä liikkeen nimi ja sarjat",
-  "close": "Close"
+  "close": "Close",
+  "movementNameError": "Liikeen nimen virhe",
+  "repsError": "Toistomäärän virhe",
+  "weightError": "Painomäärän virhe"
 }

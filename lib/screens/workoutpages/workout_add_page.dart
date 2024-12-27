@@ -22,7 +22,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
     super.initState();
   }
 
-  Future<void> _fetchPreviousWorkoutData() async {}
+  final _formKey = GlobalKey<FormState>();
 
   Future<List<WorkoutTemplate>> _fetchWorkoutTemplates() async {
     try {
@@ -38,8 +38,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(AppLocalizations.of(context)!.workoutAddPage),
+        title: Text(AppLocalizations.of(context)!.workoutAddPage),
       ),
       body: _buildTemplateList(),
     );
@@ -79,15 +78,48 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          insetPadding:
-              EdgeInsets.zero,
-          child: _buildWorkoutForm(context, template),
+          insetPadding: EdgeInsets.zero,
+          child: FutureBuilder<Widget>(
+            future: _buildWorkoutForm(context, template),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                return snapshot.data!;
+              }
+            },
+          ),
         );
       },
     );
   }
 
-  Widget _buildWorkoutForm(BuildContext context, WorkoutTemplate template) {
+  Future<Widget> _buildWorkoutForm(
+      BuildContext context, WorkoutTemplate template) async {
+    // Fetch previous workout data
+    final Workout? previousWorkout =
+        await Provider.of<WorkoutProvider>(context, listen: false)
+            .fetchPreviousWorkoutByTemplate(template);
+
+    // Debug print previous workout details
+    /*
+    debugPrint("------------------------------------\n");
+    if (previousWorkout != null) {
+      for (var movement in previousWorkout.movements) {
+        debugPrint("Movement: ${movement.movement}");
+        debugPrint("Sets: ${movement.sets}");
+        debugPrint("Reps: ${movement.reps}");
+        debugPrint("Weights: ${movement.weights}");
+      }
+      debugPrint("------------------------------------\n");
+    } else {
+      debugPrint("No previous workout found.\n");
+    }
+    */
+
+    // Initialize controllers for reps, weights, and movement names
     List<List<TextEditingController>> repsControllers =
         List.generate(template.movements.length, (_) => []);
     List<List<TextEditingController>> weightsControllers =
@@ -95,200 +127,289 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
     List<TextEditingController> movementNameControllers = [];
     List<bool> isEditing = List.filled(template.movements.length, false);
 
-    // Initialize controllers
+    // Initialize the controllers based on the previous workout or template
     for (var index = 0; index < template.movements.length; index++) {
       var movement = template.movements[index];
+
+      // Prefill movement name controller
       movementNameControllers
           .add(TextEditingController(text: movement.movement));
-      for (var i = 0; i < movement.sets; i++) {
-        repsControllers[index].add(TextEditingController());
-        weightsControllers[index].add(TextEditingController());
+
+      // Get the corresponding previous movement data, or default to empty if not found
+      var prevMovement = previousWorkout?.movements.firstWhere(
+        (prevMovement) => prevMovement.movement == movement.movement,
+        orElse: () => WorkoutMovement(
+            movement: '',
+            sets: 0,
+            reps: [],
+            weights: []), // Return default if not found
+      );
+
+      // Determine the number of sets to initialize
+      int numberOfSets = prevMovement?.sets ??
+          movement.sets; // Use previous workout's sets or fallback to template
+
+      // Prefill the reps and weights controllers
+      for (var i = 0; i < numberOfSets; i++) {
+        // Prefill reps
+        repsControllers[index].add(TextEditingController(
+          text: prevMovement!.reps.length > i
+              ? prevMovement.reps[i].toString()
+              : '',
+        ));
+
+        // Prefill weights
+        weightsControllers[index].add(TextEditingController(
+          text: prevMovement.weights.length > i
+              ? prevMovement.weights[i].toString()
+              : '',
+        ));
+      }
+
+      // If the previous workout had fewer sets, fill in the remaining sets with empty controllers
+      if (prevMovement != null && prevMovement.sets < movement.sets) {
+        for (var i = prevMovement.sets; i < movement.sets; i++) {
+          repsControllers[index].add(TextEditingController());
+          weightsControllers[index].add(TextEditingController());
+        }
       }
     }
 
     return StatefulBuilder(
       builder: (context, setState) {
         return SingleChildScrollView(
-          child: Column(
-            children: [
-              for (var index = 0; index < template.movements.length; index++)
-                Card(
-                  margin: EdgeInsets.all(8),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: isEditing[index]
-                                  ? TextField(
-                                      controller:
-                                          movementNameControllers[index],
+          child: Form(
+            key: _formKey, // Attach the Form key here
+            child: Column(
+              children: [
+                for (var index = 0; index < template.movements.length; index++)
+                  Card(
+                    margin: EdgeInsets.all(8),
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: isEditing[index]
+                                    ? TextFormField(
+                                        controller:
+                                            movementNameControllers[index],
+                                        decoration: InputDecoration(
+                                          labelText:
+                                              AppLocalizations.of(context)!
+                                                  .movementName,
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return AppLocalizations.of(context)!
+                                                .movementNameError;
+                                          }
+                                          return null;
+                                        },
+                                      )
+                                    : Text(
+                                        movementNameControllers[index].text,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                              ),
+                              IconButton(
+                                icon: Icon(isEditing[index]
+                                    ? Icons.check
+                                    : Icons.edit),
+                                onPressed: () {
+                                  setState(() {
+                                    isEditing[index] = !isEditing[index];
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          for (var i = 0;
+                              i < repsControllers[index].length;
+                              i++)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: repsControllers[index][i],
+                                      keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
-                                        labelText: AppLocalizations.of(context)!.movementName,
+                                        labelText:
+                                            AppLocalizations.of(context)!.reps,
                                         border: OutlineInputBorder(),
                                       ),
-                                    )
-                                  : Text(
-                                      movementNameControllers[index].text,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
-                                    ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                  isEditing[index] ? Icons.check : Icons.edit),
-                              onPressed: () {
-                                setState(() {
-                                  isEditing[index] = !isEditing[index];
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        for (var i = 0; i < repsControllers[index].length; i++)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: repsControllers[index][i],
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: (AppLocalizations.of(context)!.reps),
-                                      border: OutlineInputBorder(),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(context)!
+                                              .repsError;
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ),
-                                ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: TextField(
-                                    controller: weightsControllers[index][i],
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: (AppLocalizations.of(context)!.weight),
-                                      border: OutlineInputBorder(),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: weightsControllers[index][i],
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: AppLocalizations.of(context)!
+                                            .weight,
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(context)!
+                                              .weightError;
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.remove_circle_outline),
-                                  onPressed: () {
-                                    setState(() {
-                                      repsControllers[index].removeAt(i);
-                                      weightsControllers[index].removeAt(i);
-                                    });
-                                  },
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: Icon(Icons.remove_circle_outline),
+                                    onPressed: () {
+                                      setState(() {
+                                        repsControllers[index].removeAt(i);
+                                        weightsControllers[index].removeAt(i);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton.icon(
+                                icon: Icon(Icons.add),
+                                label:
+                                    Text(AppLocalizations.of(context)!.addSet),
+                                onPressed: () {
+                                  setState(() {
+                                    repsControllers[index]
+                                        .add(TextEditingController());
+                                    weightsControllers[index]
+                                        .add(TextEditingController());
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.add),
-                              label: Text(AppLocalizations.of(context)!
-                                  .addSet),
-                              onPressed: () {
-                                setState(() {
-                                  repsControllers[index]
-                                      .add(TextEditingController());
-                                  weightsControllers[index]
-                                      .add(TextEditingController());
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text(AppLocalizations.of(context)!.areYouSureClose),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text(AppLocalizations.of(context)!.no),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text(AppLocalizations.of(context)!.yes),
-                                ),
-                              ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(AppLocalizations.of(context)!
+                                    .areYouSureClose),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child:
+                                        Text(AppLocalizations.of(context)!.no),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                    },
+                                    child:
+                                        Text(AppLocalizations.of(context)!.yes),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Text(AppLocalizations.of(context)!.cancel),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            final workoutProvider =
+                                Provider.of<WorkoutProvider>(context,
+                                    listen: false);
+
+                            List<WorkoutMovement> workoutMovements = [];
+
+                            for (var index = 0;
+                                index < template.movements.length;
+                                index++) {
+                              var movement = template.movements[index];
+                              List<int> reps = [];
+                              List<double> weights = [];
+
+                              for (var i = 0;
+                                  i < repsControllers[index].length;
+                                  i++) {
+                                reps.add(
+                                    int.parse(repsControllers[index][i].text));
+                                weights.add(double.parse(
+                                    weightsControllers[index][i].text));
+                              }
+
+                              workoutMovements.add(WorkoutMovement(
+                                movement: movement.movement,
+                                sets: repsControllers[index].length,
+                                reps: reps,
+                                weights: weights
+                                    .map((weight) => weight.toInt())
+                                    .toList(),
+                              ));
+                            }
+
+                            final workout = Workout(
+                              workoutTemplateId: template.id,
+                              workoutId: 0,
+                              name: template.name,
+                              date: DateTime.now(),
+                              movements: workoutMovements,
                             );
-                          },
-                        );
-                      },
-                      child: Text(AppLocalizations.of(context)!.cancel),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ElevatedButton(
-                      onPressed: () {
 
-                        final workoutProvider =
-                            Provider.of<WorkoutProvider>(context, listen: false);
+                            workoutProvider.addWorkout(workout);
 
-                        List<WorkoutMovement> workoutMovements = [];
-
-                        for (var index = 0; index < template.movements.length; index++) {
-                          var movement = template.movements[index];
-                          List<int> reps = [];
-                          List<double> weights = [];
-
-                          for (var i = 0; i < repsControllers[index].length; i++) {
-                            reps.add(int.parse(repsControllers[index][i].text));
-                            weights.add(double.parse(weightsControllers[index][i].text));
+                            Navigator.of(context).pop();
+                          } else {
+                            // Handle invalid form
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    AppLocalizations.of(context)!.invalidInput),
+                              ),
+                            );
                           }
-
-                          workoutMovements.add(WorkoutMovement(
-                            movement: movement.movement,
-                            sets: movement.sets,
-                            reps: reps,
-                            weights: weights.map((weight) => weight.toInt()).toList(),
-                          ));
-                        }
-
-                        final workout = Workout(
-                          workoutTemplateId: template.id,
-                          workoutId: 0,
-                          name: template.name,
-                          date: DateTime.now(),
-                          movements: workoutMovements,
-                        );
-
-                        workoutProvider.addWorkout(workout);
-
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(AppLocalizations.of(context)!.save),
+                        },
+                        child: Text(AppLocalizations.of(context)!.save),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

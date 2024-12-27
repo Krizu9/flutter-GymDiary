@@ -48,5 +48,8 @@
   "no": "No",
   "yes": "Yes",
   "validMovementAndSets": "Please enter valid movement and sets",
-  "close": "Sulje"
+  "close": "Sulje",
+  "movementNameError": "Movement name error",
+  "repsError": "Rep count error",
+  "weightError": "Weight amount error"
 }

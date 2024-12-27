@@ -95,6 +95,16 @@ class _WorkoutViewPageState extends State<WorkoutViewPage> {
   }
 
   Future<void> showWorkoutDetails(BuildContext context, Workout workout) {
+    debugPrint("-------------------------------------------------------\n");
+    debugPrint("info about selected workout");
+    debugPrint("workout: $workout");
+    for (var i = 0; i < workout.movements.length; i++) {
+      debugPrint("movement: ${workout.movements[i].movement}");
+      debugPrint("sets: ${workout.movements[i].sets}");
+      debugPrint("reps: ${workout.movements[i].reps}");
+      debugPrint("weights: ${workout.movements[i].weights}");
+    }
+    debugPrint("-------------------------------------------------------\n");
     return showDialog(
       context: context,
       builder: (BuildContext context) {

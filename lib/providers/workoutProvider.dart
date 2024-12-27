@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gymdiary/models/workoutModel.dart';
 import 'package:gymdiary/providers/databaseHelper.dart';
 import 'package:gymdiary/models/workoutMovement.dart';
+import 'package:gymdiary/models/workoutTemplate.dart';
 import 'databaseHelper.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -22,7 +23,7 @@ class WorkoutProvider with ChangeNotifier {
   Future<void> addWorkout(Workout workout) async {
     final db = _db;
     if (db == null) throw Exception("Database not initialized");
-
+    /*
     debugPrint("------------------------------------\n");
     for (var movement in workout.movements) {
       debugPrint("Movement: ${movement.movement}");
@@ -31,7 +32,7 @@ class WorkoutProvider with ChangeNotifier {
       debugPrint("Weights: ${movement.weights}");
     }
     debugPrint("------------------------------------\n");
-
+    */
     // Start a transaction to ensure data consistency.
     await db.transaction((txn) async {
       // Insert the workout into the workouts table.
@@ -43,6 +44,7 @@ class WorkoutProvider with ChangeNotifier {
 
       // Insert each movement and its performance details.
       for (var movement in workout.movements) {
+        /*
         debugPrint("-----------------------------\n");
         debugPrint("Inserting movement: $movement");
         debugPrint("Workout ID: $workoutId");
@@ -50,6 +52,7 @@ class WorkoutProvider with ChangeNotifier {
         debugPrint("Sets: ${movement.sets}");
         debugPrint("Reps: ${movement.reps}");
         debugPrint("Weights: ${movement.weights}");
+        */
         debugPrint("-----------------------------\n");
         await txn.insert('workout_performance', {
           'workoutId': workoutId,
@@ -64,7 +67,72 @@ class WorkoutProvider with ChangeNotifier {
   }
 
   // Fetch the latest workout by workout template ID
-  Future<Workout?> fetchLatestWorkoutByTemplate() async {}
+  Future<Workout?> fetchPreviousWorkoutByTemplate(
+      WorkoutTemplate workoutTemplate) async {
+    final db = _db;
+    if (db == null) throw Exception("Database not initialized");
+
+    try {
+      // Fetch the latest workout by workout template ID
+      final List<Map<String, dynamic>> fetchedWorkouts = await db.query(
+        'workouts',
+        where: 'workoutTemplateId = ?',
+        whereArgs: [workoutTemplate.id],
+        orderBy: 'date DESC',
+        limit: 1,
+      );
+
+      // If no workouts are found, return null
+      if (fetchedWorkouts.isEmpty) {
+        return null;
+      }
+
+      // Fetch the movements for the latest workout
+      final List<Map<String, dynamic>> fetchedMovements = await db.query(
+        'workout_performance',
+        where: 'workoutId = ?',
+        whereArgs: [fetchedWorkouts[0]['workoutId']],
+      );
+
+      // Process the movements
+      final List<WorkoutMovement> movements = fetchedMovements.map((movement) {
+        final movementName = movement['movement'].toString();
+        final setsCount = movement['sets'] as int;
+
+        // Parse reps and weights from comma-separated strings
+        final repsList = (movement['reps'] as String)
+            .split(',')
+            .map((e) =>
+                int.tryParse(e) ?? 0) // Use tryParse to handle invalid inputs
+            .toList();
+        final weightsList = (movement['weights'] as String)
+            .split(',')
+            .map((e) =>
+                int.tryParse(e) ?? 0) // Use tryParse to handle invalid inputs
+            .toList();
+
+        return WorkoutMovement(
+          movement: movementName,
+          sets: setsCount,
+          reps: repsList,
+          weights: weightsList,
+        );
+      }).toList();
+
+      // Return the latest workout
+      return Workout(
+        workoutId: fetchedWorkouts[0]['workoutId'],
+        workoutTemplateId: fetchedWorkouts[0]['workoutTemplateId'],
+        name: fetchedWorkouts[0]['name'],
+        date: DateTime.fromMillisecondsSinceEpoch(fetchedWorkouts[0]['date']),
+        movements: movements,
+      );
+    } catch (e) {
+      // Handle any errors gracefully
+      debugPrint("Error fetching previous workout: $e");
+      return null;
+    }
+  }
 
   // Update an existing workout
   Future<void> updateWorkout() async {}
@@ -77,12 +145,13 @@ class WorkoutProvider with ChangeNotifier {
     // Start a transaction to ensure data consistency.
     await db.transaction((txn) async {
       // Delete the workout from the workouts table.
-      await txn.delete('workouts', where: 'workoutId = ?', whereArgs: [workout.workoutId]);
+      await txn.delete('workouts',
+          where: 'workoutId = ?', whereArgs: [workout.workoutId]);
 
       // Delete the movements from the workout_performance table.
-      await txn.delete('workout_performance', where: 'workoutId = ?', whereArgs: [workout.workoutId]);
+      await txn.delete('workout_performance',
+          where: 'workoutId = ?', whereArgs: [workout.workoutId]);
     });
-
   }
 
   // Fetch all workouts for a user
@@ -96,13 +165,12 @@ class WorkoutProvider with ChangeNotifier {
     final List<Map<String, dynamic>> fetchedPerformance =
         await db.query('workout_performance');
 
-    /*
     debugPrint("-------------------------------------------------------\n");
     debugPrint("info about saved workouts and movements");
     debugPrint("workouts: $fetchedWorkouts");
     debugPrint("movements: $fetchedPerformance\n");
     debugPrint("-------------------------------------------------------\n");
-    */
+
     // List to store the result
     final List<Workout> results = [];
 
@@ -135,8 +203,6 @@ class WorkoutProvider with ChangeNotifier {
         );
       }).toList();
 
-
-
       results.add(Workout(
         workoutId: workout['workoutId'],
         workoutTemplateId: workout['workoutTemplateId'],
@@ -158,6 +224,4 @@ class WorkoutProvider with ChangeNotifier {
     // Return the list of workouts
     return results;
   }
-
-
 }
