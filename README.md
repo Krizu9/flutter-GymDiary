@@ -6,25 +6,43 @@ Ajatuksena tällä projektilla on luoda oma kuntosaliharjoitteiden seurantaan ra
 
 ## Appi
 
-
 <img src="images_for_readme/image.png" alt="Image description" width="300" />
 
-Kotisivu englanniksi
+Kotisivu englanniksi.
 
 <img src="images_for_readme/image-1.png" alt="Image description" width="300" />
 
-Kotisivu suomeksi
+Kotisivu suomeksi.
+
+<img src="images_for_readme/image-2.png" alt="Image description" width="300" />
+
+Harjoitepohjan luominen.
 
 <img src="images_for_readme/image-3.png" alt="Image description" width="300" />
 
-Harjoitepohjan luominen
+Luotujen harjoitepohjien näkymä.
 
 <img src="images_for_readme/image-4.png" alt="Image description" width="300" />
 
-Luotujen harjoitepohjien näkymä
+Liikkeen lisäämisnäkymä.
 
 <img src="images_for_readme/image-5.png" alt="Image description" width="300" />
 
-Jo luotujen harjoitepohjien muokkaaminen mielekkäämmäksi kuten tässä ollaan lisätty hauiskääntöä jalkapäivään :D
+Tehtävän harjoitteen valitseminen.
 
+<img src="images_for_readme/image-6.png" alt="Image description" width="300" />
 
+Harjoitekaavake täyttyy edellisen treenikerran tiedoilla automaattisesti.
+
+<img src="images_for_readme/image-7.png" alt="Image description" width="300" />
+
+Harjoitteita pystyy dynaamiesti muokkaamaan kesken treenin. Toistomääriä ja liikeen nimeä voi muokata.
+
+<img src="images_for_readme/image-8.png" alt="Image description" width="300" />
+
+Treenikerrat näkyvät listassa. Jokaista yksittäistä treeniä voi silmäillä valitsemalla treenin.
+
+<img src="images_for_readme/image-9.png" alt="Image description" width="300" />
+<img src="images_for_readme/image-10.png" alt="Image description" width="300" />
+
+Treenikerran tulosten tarkastelu.
