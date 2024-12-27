@@ -128,6 +128,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
     List<bool> isEditing = List.filled(template.movements.length, false);
 
     // Initialize the controllers based on the previous workout or template
+    // Initialize the controllers based on the previous workout or template
     for (var index = 0; index < template.movements.length; index++) {
       var movement = template.movements[index];
 
@@ -151,18 +152,18 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
 
       // Prefill the reps and weights controllers
       for (var i = 0; i < numberOfSets; i++) {
-        // Prefill reps
+        // Prefill reps (check if previous movement data is available)
         repsControllers[index].add(TextEditingController(
-          text: prevMovement!.reps.length > i
+          text: prevMovement != null && prevMovement.reps.length > i
               ? prevMovement.reps[i].toString()
-              : '',
+              : '', // If prevMovement is null or doesn't have enough reps, use an empty string
         ));
 
-        // Prefill weights
+        // Prefill weights (check if previous movement data is available)
         weightsControllers[index].add(TextEditingController(
-          text: prevMovement.weights.length > i
+          text: prevMovement != null && prevMovement.weights.length > i
               ? prevMovement.weights[i].toString()
-              : '',
+              : '', // If prevMovement is null or doesn't have enough weights, use an empty string
         ));
       }
 
@@ -174,6 +175,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
         }
       }
     }
+
 
     return StatefulBuilder(
       builder: (context, setState) {
@@ -373,7 +375,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
                               }
 
                               workoutMovements.add(WorkoutMovement(
-                                movement: movement.movement,
+                                movement: movementNameControllers[index].text,
                                 sets: repsControllers[index].length,
                                 reps: reps,
                                 weights: weights

@@ -172,7 +172,7 @@ class WorkoutProvider with ChangeNotifier {
     debugPrint("-------------------------------------------------------\n");
 
     // List to store the result
-    final List<Workout> results = [];
+    late List<Workout> results = [];
 
     // Process each workout and its corresponding movements
     for (final workout in fetchedWorkouts) {
@@ -222,6 +222,10 @@ class WorkoutProvider with ChangeNotifier {
     debugPrint("-------------------------------------------------------\n");
     */
     // Return the list of workouts
+
+    //reverse the list
+    results = results.reversed.toList();
+
     return results;
   }
 }
