@@ -8,19 +8,20 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gymdiary/providers/workoutProvider.dart';
 import 'package:gymdiary/providers/databaseHelper.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); // Ensures the app is initialized before running
 
-  // Initialize the provider and database
+  // Request permissions before database initialization
+  await requestPermissions();
+
+  // Initialize the provider and database after permissions are granted
   final workoutTemplateProvider = WorkoutTemplateProvider();
+  final workoutProvider = WorkoutProvider();
   final databaseHelper = DatabaseHelper();
   await databaseHelper.openDatabaseConnection();
-
-  final workoutProvider = WorkoutProvider();
-
-  
 
   runApp(
     MultiProvider(
@@ -31,6 +32,32 @@ void main() async {
       child: const MyApp(),
     ),
   );
+}
+
+// Function to request permissions
+Future<void> requestPermissions() async {
+  // Request manage external storage permission on Android 11+
+  if (await Permission.manageExternalStorage.isPermanentlyDenied) {
+    // Open app settings if the permission is permanently denied
+    openAppSettings();
+  } else {
+    // Request permission for manage external storage
+    var status = await Permission.manageExternalStorage.request();
+    if (status.isGranted) {
+      // Permission granted
+      print("Storage Permission Granted");
+    } else {
+      // Handle the case where permission is denied
+      print("Storage Permission Denied");
+    }
+  }
+
+  // Optionally, request additional permissions like read and write storage
+  if (await Permission.storage.request().isGranted) {
+    print("Storage Permission granted");
+  } else {
+    print("Storage Permission denied");
+  }
 }
 
 class MyApp extends StatefulWidget {

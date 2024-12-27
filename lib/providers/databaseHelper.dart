@@ -1,15 +1,28 @@
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 
 class DatabaseHelper {
-  
   // Open the database and create tables if not exist
   Future<Database> openDatabaseConnection() async {
+    final directory =
+        await getApplicationDocumentsDirectory(); // Get app directory
+    final path = '${directory.path}/gym_database.db'; // Path for database file
+
     final db = await openDatabase(
-      'gym_database.db',
-      version: 1,
+      path, // Use custom path here
+      version: 4,
       onCreate: (Database db, int version) async {
-        await initDatabase(db); // Initialize tables during first creation
-      }
+        await initDatabase(db);
+      },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 4) {
+          await db.execute('''CREATE TABLE IF NOT EXISTS workout_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL
+          )''');
+        }
+      },
     );
     return db;
   }
@@ -20,10 +33,22 @@ class DatabaseHelper {
     // Create workouts table
     await db.execute('''
     CREATE TABLE workouts (
-      workoutId TEXT PRIMARY KEY,
-      workoutTemplateId TEXT DEFAULT '',
+      workoutId INTEGER PRIMARY KEY AUTOINCREMENT,
+      workoutTemplateId INTEGER NOT NULL,
       name TEXT NOT NULL,
       date INTEGER NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE workout_performance (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workoutId INTEGER NOT NULL,
+      movement TEXT NOT NULL,
+      sets INTEGER NOT NULL,
+      reps TEXT NOT NULL,
+      weights TEXT NOT NULL,
+      FOREIGN KEY (workoutId) REFERENCES workouts(workoutId) ON DELETE CASCADE
     )
   ''');
 

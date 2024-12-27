@@ -39,7 +39,7 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
     return Scaffold(
       appBar: AppBar(
         title:
-            Text(AppLocalizations.of(context)?.workoutAddPage ?? 'Add Workout'),
+            Text(AppLocalizations.of(context)!.workoutAddPage),
       ),
       body: _buildTemplateList(),
     );
@@ -75,7 +75,6 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
   }
 
   void _openWorkoutFormDialog(BuildContext context, WorkoutTemplate template) {
-    debugPrint('Opening workout form dialog');
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -89,117 +88,210 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
   }
 
   Widget _buildWorkoutForm(BuildContext context, WorkoutTemplate template) {
-    // List to hold dynamic fields for reps and weights
-    List<TextEditingController> repsControllers = [];
-    List<TextEditingController> weightsControllers = [];
+    List<List<TextEditingController>> repsControllers =
+        List.generate(template.movements.length, (_) => []);
+    List<List<TextEditingController>> weightsControllers =
+        List.generate(template.movements.length, (_) => []);
+    List<TextEditingController> movementNameControllers = [];
+    List<bool> isEditing = List.filled(template.movements.length, false);
 
-    // Initialize controllers for each movement and each set
-    for (var movement in template.movements) {
+    // Initialize controllers
+    for (var index = 0; index < template.movements.length; index++) {
+      var movement = template.movements[index];
+      movementNameControllers
+          .add(TextEditingController(text: movement.movement));
       for (var i = 0; i < movement.sets; i++) {
-        repsControllers.add(TextEditingController());
-        weightsControllers.add(TextEditingController());
+        repsControllers[index].add(TextEditingController());
+        weightsControllers[index].add(TextEditingController());
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          for (var movement in template.movements)
-            Card(
-              margin: EdgeInsets.all(8),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      movement.movement,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    // Loop to create input fields for each set
-                    for (var i = 0; i < movement.sets; i++)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              for (var index = 0; index < template.movements.length; index++)
+                Card(
+                  margin: EdgeInsets.all(8),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
                             Expanded(
-                              child: TextField(
-                                controller: repsControllers[i],
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'Set ${i + 1} Reps',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
+                              child: isEditing[index]
+                                  ? TextField(
+                                      controller:
+                                          movementNameControllers[index],
+                                      decoration: InputDecoration(
+                                        labelText: AppLocalizations.of(context)!.movementName,
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    )
+                                  : Text(
+                                      movementNameControllers[index].text,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
+                                    ),
                             ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: weightsControllers[i],
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'Set ${i + 1} Weight',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
+                            IconButton(
+                              icon: Icon(
+                                  isEditing[index] ? Icons.check : Icons.edit),
+                              onPressed: () {
+                                setState(() {
+                                  isEditing[index] = !isEditing[index];
+                                });
+                              },
                             ),
                           ],
                         ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Are you sure you want to close?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('No'),
+                        for (var i = 0; i < repsControllers[index].length; i++)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: repsControllers[index][i],
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: (AppLocalizations.of(context)!.reps),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: TextField(
+                                    controller: weightsControllers[index][i],
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: (AppLocalizations.of(context)!.weight),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.remove_circle_outline),
+                                  onPressed: () {
+                                    setState(() {
+                                      repsControllers[index].removeAt(i);
+                                      weightsControllers[index].removeAt(i);
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
-                            TextButton(
+                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.add),
+                              label: Text(AppLocalizations.of(context)!
+                                  .addSet),
                               onPressed: () {
-                                Navigator.of(context).pop();
-                                Navigator.of(context).pop();
+                                setState(() {
+                                  repsControllers[index]
+                                      .add(TextEditingController());
+                                  weightsControllers[index]
+                                      .add(TextEditingController());
+                                });
                               },
-                              child: Text('Yes'),
                             ),
                           ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.areYouSureClose),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text(AppLocalizations.of(context)!.no),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text(AppLocalizations.of(context)!.yes),
+                                ),
+                              ],
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                  child: Text('Close'),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pop();
-                  },
-                  child: Text('Save Workout'),
-                ),
+                      child: Text(AppLocalizations.of(context)!.cancel),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      onPressed: () {
+
+                        final workoutProvider =
+                            Provider.of<WorkoutProvider>(context, listen: false);
+
+                        List<WorkoutMovement> workoutMovements = [];
+
+                        for (var index = 0; index < template.movements.length; index++) {
+                          var movement = template.movements[index];
+                          List<int> reps = [];
+                          List<double> weights = [];
+
+                          for (var i = 0; i < repsControllers[index].length; i++) {
+                            reps.add(int.parse(repsControllers[index][i].text));
+                            weights.add(double.parse(weightsControllers[index][i].text));
+                          }
+
+                          workoutMovements.add(WorkoutMovement(
+                            movement: movement.movement,
+                            sets: movement.sets,
+                            reps: reps,
+                            weights: weights.map((weight) => weight.toInt()).toList(),
+                          ));
+                        }
+
+                        final workout = Workout(
+                          workoutTemplateId: template.id,
+                          workoutId: 0,
+                          name: template.name,
+                          date: DateTime.now(),
+                          movements: workoutMovements,
+                        );
+
+                        workoutProvider.addWorkout(workout);
+
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(AppLocalizations.of(context)!.save),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
-
-  void _saveWorkout(BuildContext context) {}
 }

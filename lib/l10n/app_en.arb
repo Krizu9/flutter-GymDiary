@@ -41,5 +41,12 @@
   "invalidInput": "Invalid input",
   "ok": "Ok",
   "weights": "Weights",
-  "movement": "Movement"
+  "movement": "Movement",
+  "areYouSureClose": "Are you sure you want to close?",
+  "addSet" : "Add set",
+  "weight": "Weight",
+  "no": "No",
+  "yes": "Yes",
+  "validMovementAndSets": "Please enter valid movement and sets",
+  "close": "Sulje"
 }

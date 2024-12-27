@@ -41,5 +41,12 @@
   "invalidInput": "Väärä syöte",
   "ok": "Ok",
   "weights": "Painot",
-  "movement": "Liike"
+  "movement": "Liike",
+  "areYouSureClose": "Haluatko varmasti sulkea?",
+  "addSet" : "Lisää sarja",
+  "weight": "Paino",
+  "no": "Ei",
+  "yes": "Kyllä",
+  "validMovementAndSets": "Syötä liikkeen nimi ja sarjat",
+  "close": "Close"
 }

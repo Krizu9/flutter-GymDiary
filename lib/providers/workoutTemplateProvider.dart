@@ -19,13 +19,13 @@ class WorkoutTemplateProvider with ChangeNotifier {
     // Fetch workout templates
     final fetchedTemplates = await _db?.query('workout_templates');
     final fetchedMovements = await _db?.query('template_movements');
-
-    debugPrint("------------------------------------------------------- \n");
+    /*
+    debugPrint("-------------------------------------------------------\n");
     debugPrint("info about fetched workout templates and movements");
     debugPrint("templates: $fetchedTemplates");
     debugPrint("movements: $fetchedMovements \n");
-    debugPrint("-------------------------------------------------------");
-
+    debugPrint("-------------------------------------------------------\n");
+    */
     if (fetchedTemplates == null) {
       return [];    
     }

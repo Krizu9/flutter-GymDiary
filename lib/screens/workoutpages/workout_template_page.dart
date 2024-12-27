@@ -30,8 +30,7 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
     final workoutProvider = Provider.of<WorkoutTemplateProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)?.workoutTemplatePage ??
-            'Workout Template'),
+        title: Text(AppLocalizations.of(context)!.workoutTemplatePage),
       ),
       body: _buildTemplateList(workoutProvider),
       floatingActionButton: FloatingActionButton(
@@ -61,7 +60,8 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                 final template = templates[index];
                 return ListTile(
                   title: Text(template.name),
-                  subtitle: Text('Movements: ${template.movements.length}'),
+                  subtitle: Text(
+                      '${AppLocalizations.of(context)!.movements}: ${template.movements.length}'),
                   onTap: () => _showAddMovementDialog(template),
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
@@ -83,15 +83,16 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Template'),
+          title: Text(AppLocalizations.of(context)!.addWorkoutTemplate),
           content: TextField(
             controller: _templateNameController,
-            decoration: InputDecoration(hintText: 'Template Name'),
+            decoration: InputDecoration(
+                hintText: (AppLocalizations.of(context)!.templateName)),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -104,8 +105,9 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                   movements: [],
                 ));
                 Navigator.pop(context);
+                _templateNameController.clear();
               },
-              child: Text('Save'),
+              child: Text(AppLocalizations.of(context)!.save),
             ),
           ],
         );
@@ -146,7 +148,8 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                         .map(
                           (movement) => ListTile(
                             title: Text(movement.movement),
-                            subtitle: Text('Sets: ${movement.sets}'),
+                            subtitle: Text(
+                                '${(AppLocalizations.of(context)!.sets)}: ${movement.sets}'),
                             trailing: IconButton(
                               icon: Icon(Icons.delete),
                               onPressed: () {
@@ -162,19 +165,20 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                 ),
               TextField(
                 controller: movementController,
-                decoration: InputDecoration(hintText: 'Movement Name'),
+                decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.movementName),
               ),
               TextField(
-                controller: setsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(hintText: 'Sets'),
-              ),
+                  controller: setsController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context)!.sets)),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -199,10 +203,11 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                 } else {
                   // Show a validation error
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Please enter valid movement and sets')));
+                      content:
+                          Text(AppLocalizations.of(context)!.validMovementAndSets)));
                 }
               },
-              child: Text('Save'),
+              child: Text(AppLocalizations.of(context)!.save),
             ),
           ],
         );
