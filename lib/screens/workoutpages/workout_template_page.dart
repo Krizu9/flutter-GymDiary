@@ -50,28 +50,23 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
           final templates = snapshot.data!;
-          return SizedBox(
-            //scaling height
-            height: MediaQuery.of(context).size.height * 0.9,
-            width: MediaQuery.of(context).size.width,
-            child: ListView.builder(
-              itemCount: templates.length,
-              itemBuilder: (context, index) {
-                final template = templates[index];
-                return ListTile(
-                  title: Text(template.name),
-                  subtitle: Text(
-                      '${AppLocalizations.of(context)!.movements}: ${template.movements.length}'),
-                  onTap: () => _showAddMovementDialog(template),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      workoutProvider.deleteTemplate(template.id);
-                    },
-                  ),
-                );
-              },
-            ),
+          return ListView.builder(
+            itemCount: templates.length,
+            itemBuilder: (context, index) {
+              final template = templates[index];
+              return ListTile(
+                title: Text(template.name),
+                subtitle: Text(
+                    '${AppLocalizations.of(context)!.movements}: ${template.movements.length}'),
+                onTap: () => _showTemplateDetailsDialog(template),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    workoutProvider.deleteTemplate(template.id);
+                  },
+                ),
+              );
+            },
           );
         }
       },
@@ -79,7 +74,7 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
   }
 
   Future<void> _showAddTemplateDialog() async {
-    return (showDialog(
+    return showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -112,68 +107,102 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
           ],
         );
       },
-    ));
+    );
   }
 
-  Future<void> _showAddMovementDialog(WorkoutTemplate workoutTemplate) async {
+  Future<void> _showTemplateDetailsDialog(WorkoutTemplate template) async {
     final workoutProvider =
         Provider.of<WorkoutTemplateProvider>(context, listen: false);
-    final templates = await workoutProvider.fetchWorkoutTemplates();
 
-    // Find the selected template by its ID
-    final template = templates.firstWhere(
-      (t) => t.id == workoutTemplate.id,
-      orElse: () => WorkoutTemplate(id: 0, name: 'error', movements: []),
-    );
-
-    if (template == null) return; // If no template found, exit
-
-    // Set up TextControllers for adding new movement
-    final movementController = TextEditingController();
-    final setsController = TextEditingController();
-
-    // Show the dialog
     return showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Movement for ${template.name}'),
-          content: Column(
-            children: [
-              // Display existing movements in the template
-              if (template.movements.isNotEmpty)
-                SingleChildScrollView(
-                  child: Column(
-                    children: template.movements
-                        .map(
-                          (movement) => ListTile(
-                            title: Text(movement.movement),
-                            subtitle: Text(
-                                '${(AppLocalizations.of(context)!.sets)}: ${movement.sets}'),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                workoutProvider.deleteMovementFromTemplate(
-                                    workoutTemplate, movement);
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                        )
-                        .toList(),
+          title: Text('${template.name}'),
+          content: SingleChildScrollView(
+            child: FutureBuilder<List<WorkoutTemplate>>(
+              future: workoutProvider.fetchWorkoutTemplates(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                      child: Text(
+                          AppLocalizations.of(context)!.noWorkoutTemplates));
+                } else {
+                  final templates = snapshot.data!;
+                  final selectedTemplate = templates.firstWhere(
+                    (item) => item.id == template.id,
+                    orElse: () => template,
+                  );
+                  return Column(
+                    children: selectedTemplate.movements.map((movement) {
+                      return ListTile(
+                        title: Text(movement.movement),
+                        subtitle: Text(
+                            '${AppLocalizations.of(context)!.sets}: ${movement.sets}'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            workoutProvider.deleteMovementFromTemplate(
+                                selectedTemplate, movement);
+                            Navigator.pop(context);
+                            _showTemplateDetailsDialog(template);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context)!.close),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _showAddMovementDialog(template);
+              },
+              child: Text(AppLocalizations.of(context)!.addMovement),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddMovementDialog(WorkoutTemplate template) async {
+    final movementController = TextEditingController();
+    final setsController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.addMovement),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: movementController,
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.movementName,
                   ),
                 ),
-              TextField(
-                controller: movementController,
-                decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.movementName),
-              ),
-              TextField(
+                TextField(
                   controller: setsController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.sets)),
-            ],
+                    hintText: AppLocalizations.of(context)!.sets,
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -181,12 +210,11 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
               child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
-              onPressed: () async {
+              onPressed: () {
                 final movementName = movementController.text;
                 final sets = int.tryParse(setsController.text) ?? 0;
 
                 if (movementName.isNotEmpty && sets > 0) {
-                  // Create a new movement
                   final newMovement = WorkoutMovement(
                     movement: movementName,
                     sets: sets,
@@ -194,17 +222,15 @@ class _WorkoutTemplatePageState extends State<WorkoutTemplatePage> {
                     weights: [],
                   );
 
-                  // Save the updated template
-                  workoutProvider.addMovementToTemplate(
-                      workoutTemplate, newMovement);
-
-                  // Close dialog after saving
+                  Provider.of<WorkoutTemplateProvider>(context, listen: false)
+                      .addMovementToTemplate(template, newMovement);
                   Navigator.pop(context);
+                  Navigator.pop(context);
+                  _showTemplateDetailsDialog(template);
                 } else {
-                  // Show a validation error
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content:
-                          Text(AppLocalizations.of(context)!.validMovementAndSets)));
+                      content: Text(
+                          AppLocalizations.of(context)!.validMovementAndSets)));
                 }
               },
               child: Text(AppLocalizations.of(context)!.save),
