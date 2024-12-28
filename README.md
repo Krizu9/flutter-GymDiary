@@ -12,7 +12,7 @@ Kotisivu englanniksi.
 
 <br>
 
------
+---
 
 <br>
 
@@ -22,7 +22,7 @@ Kotisivu suomeksi.
 
 <br>
 
------
+---
 
 <br>
 
@@ -32,7 +32,7 @@ Harjoitepohjan luominen.
 
 <br>
 
------
+---
 
 <br>
 
@@ -42,17 +42,27 @@ Luotujen harjoitepohjien näkymä.
 
 <br>
 
------
+---
 
 <br>
 
 <img src="images_for_readme/image-4.png" alt="Image description" width="300" />
 
-Liikkeen lisäämisnäkymä.
+Liikkeiden selailu ja poisto harjoitepohjassa.
 
 <br>
 
------
+---
+
+<br>
+
+<img src="images_for_readme/image-11.png" alt="Image description" width="300" />
+
+Liikeen lisääminen harjoitepohjaan.
+
+<br>
+
+---
 
 <br>
 
@@ -62,7 +72,7 @@ Tehtävän harjoitteen valitseminen.
 
 <br>
 
------
+---
 
 <br>
 
@@ -72,7 +82,7 @@ Harjoitekaavake täyttyy edellisen treenikerran tiedoilla automaattisesti.
 
 <br>
 
------
+---
 
 <br>
 
@@ -82,7 +92,7 @@ Harjoitteita pystyy dynaamiesti muokkaamaan kesken treenin. Toistomääriä ja l
 
 <br>
 
------
+---
 
 <br>
 
@@ -92,7 +102,7 @@ Treenikerrat näkyvät listassa. Jokaista yksittäistä treeniä voi silmäillä
 
 <br>
 
------
+---
 
 <br>
 
@@ -103,6 +113,6 @@ Treenikerran tulosten tarkastelu.
 
 <br>
 
------
+---
 
 <br>
