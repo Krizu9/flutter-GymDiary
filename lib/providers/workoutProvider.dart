@@ -44,7 +44,7 @@ class WorkoutProvider with ChangeNotifier {
 
       // Insert each movement and its performance details.
       for (var movement in workout.movements) {
-        /*
+        
         debugPrint("-----------------------------\n");
         debugPrint("Inserting movement: $movement");
         debugPrint("Workout ID: $workoutId");
@@ -52,7 +52,7 @@ class WorkoutProvider with ChangeNotifier {
         debugPrint("Sets: ${movement.sets}");
         debugPrint("Reps: ${movement.reps}");
         debugPrint("Weights: ${movement.weights}");
-        */
+        
         debugPrint("-----------------------------\n");
         await txn.insert('workout_performance', {
           'workoutId': workoutId,
@@ -108,7 +108,7 @@ class WorkoutProvider with ChangeNotifier {
         final weightsList = (movement['weights'] as String)
             .split(',')
             .map((e) =>
-                int.tryParse(e) ?? 0) // Use tryParse to handle invalid inputs
+                double.tryParse(e) ?? 0) // Use tryParse to handle invalid inputs
             .toList();
 
         return WorkoutMovement(
@@ -192,7 +192,7 @@ class WorkoutProvider with ChangeNotifier {
             .toList();
         final weightsList = (movement['weights'] as String)
             .split(',')
-            .map((e) => int.parse(e))
+            .map((e) => double.parse(e))
             .toList();
 
         return WorkoutMovement(

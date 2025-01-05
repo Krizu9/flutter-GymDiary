@@ -2,7 +2,7 @@ class WorkoutMovement {
   String movement;
   int sets;
   List<int> reps;
-  List<int> weights;
+  List<double> weights;
 
   WorkoutMovement({
     required this.movement,

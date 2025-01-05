@@ -176,7 +176,6 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
       }
     }
 
-
     return StatefulBuilder(
       builder: (context, setState) {
         return SingleChildScrollView(
@@ -261,7 +260,8 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
                                   Expanded(
                                     child: TextFormField(
                                       controller: weightsControllers[index][i],
-                                      keyboardType: TextInputType.number,
+                                      keyboardType:
+                                          TextInputType.number,
                                       decoration: InputDecoration(
                                         labelText: AppLocalizations.of(context)!
                                             .weight,
@@ -269,6 +269,14 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
+                                          return AppLocalizations.of(context)!
+                                              .weightError;
+                                        }
+                                        // Check if the value is a valid number (with a comma or period)
+                                        final normalizedValue =
+                                            value.replaceAll(',', '.');
+                                        if (double.tryParse(normalizedValue) ==
+                                            null) {
                                           return AppLocalizations.of(context)!
                                               .weightError;
                                         }
@@ -361,7 +369,6 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
                             for (var index = 0;
                                 index < template.movements.length;
                                 index++) {
-                              var movement = template.movements[index];
                               List<int> reps = [];
                               List<double> weights = [];
 
@@ -370,19 +377,30 @@ class _WorkoutAddPageState extends State<WorkoutAddPage> {
                                   i++) {
                                 reps.add(
                                     int.parse(repsControllers[index][i].text));
-                                weights.add(double.parse(
-                                    weightsControllers[index][i].text));
+                                final weightInput = weightsControllers[index][i]
+                                    .text
+                                    .replaceAll(',', '.');
+                                weights.add(double.parse(weightInput));
                               }
 
                               workoutMovements.add(WorkoutMovement(
                                 movement: movementNameControllers[index].text,
                                 sets: repsControllers[index].length,
                                 reps: reps,
-                                weights: weights
-                                    .map((weight) => weight.toInt())
-                                    .toList(),
+                                weights: weights,
                               ));
                             }
+
+                            debugPrint(
+                                "------------------------------------\n");
+                            for (var movement in workoutMovements) {
+                              debugPrint("Movement: ${movement.movement}");
+                              debugPrint("Sets: ${movement.sets}");
+                              debugPrint("Reps: ${movement.reps}");
+                              debugPrint("Weights: ${movement.weights}");
+                            }
+                            debugPrint(
+                                "------------------------------------\n");
 
                             final workout = Workout(
                               workoutTemplateId: template.id,

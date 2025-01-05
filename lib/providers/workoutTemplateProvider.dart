@@ -90,7 +90,7 @@ class WorkoutTemplateProvider with ChangeNotifier {
         }
 
         // Insert each weight for the movement into the movement_weights table
-        for (int weight in movement.weights) {
+        for (double weight in movement.weights) {
           await txn.insert(
             'movement_weights',
             {'movementId': movementId, 'weight': weight},
@@ -151,7 +151,7 @@ class WorkoutTemplateProvider with ChangeNotifier {
       }
 
       // Insert each weight for the movement into the movement_weights table
-      for (int weight in movement.weights) {
+      for (double weight in movement.weights) {
         await txn.insert(
           'movement_weights',
           {'movementId': movementId, 'weight': weight},

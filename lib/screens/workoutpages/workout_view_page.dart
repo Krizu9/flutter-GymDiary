@@ -95,6 +95,7 @@ class _WorkoutViewPageState extends State<WorkoutViewPage> {
   }
 
   Future<void> showWorkoutDetails(BuildContext context, Workout workout) {
+    /*
     debugPrint("-------------------------------------------------------\n");
     debugPrint("info about selected workout");
     debugPrint("workout: $workout");
@@ -105,6 +106,7 @@ class _WorkoutViewPageState extends State<WorkoutViewPage> {
       debugPrint("weights: ${workout.movements[i].weights}");
     }
     debugPrint("-------------------------------------------------------\n");
+    */
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -123,6 +125,7 @@ class _WorkoutViewPageState extends State<WorkoutViewPage> {
                 // Loop through each movement in the workout
                 for (var index = 0; index < workout.movements.length; index++)
                   Card(
+                    color: const Color.fromARGB(255, 230, 224, 224),
                     margin: EdgeInsets.all(8),
                     child: Padding(
                       padding: EdgeInsets.all(16),
@@ -166,7 +169,7 @@ class _WorkoutViewPageState extends State<WorkoutViewPage> {
                                   // Display reps and weights with larger font
                                   Expanded(
                                     child: Text(
-                                      '${i < workout.movements[index].reps.length ? workout.movements[index].reps[i] : 'N/A'} ${AppLocalizations.of(context)!.reps}, ${i < workout.movements[index].weights.length ? workout.movements[index].weights[i] : 'N/A'} kg',
+                                      '${i < workout.movements[index].reps.length ? workout.movements[index].reps[i] : 'N/A'} ${AppLocalizations.of(context)!.reps},\n${i < workout.movements[index].weights.length ? workout.movements[index].weights[i] : 'N/A'} kg',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium
